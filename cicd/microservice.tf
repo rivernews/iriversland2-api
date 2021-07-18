@@ -12,7 +12,7 @@ data "aws_ssm_parameter" "kubernetes_cluster_name" {
 
 module "iriversland2_api" {
   source  = "rivernews/kubernetes-microservice/digitalocean"
-  version = "v0.1.1"
+  version = "v0.1.31"
 
   aws_region     = var.aws_region
   aws_access_key = var.aws_access_key
@@ -54,12 +54,14 @@ module "iriversland2_api" {
   kubernetes_cron_jobs = [
     {
       name          = "db-backup-cronjob",
-      # cron_schedule = "0 6 * * *", # every day 11:00pm PST, to avoid the maintenance windown of digitalocean in 12-4am
       #   cron_schedule = "0 * * * *",
-        cron_schedule = "0 6 * * *",
+      # every day 11:00pm PST, to avoid the maintenance windown of digitalocean in 12-4am
+      cron_schedule = "0 6 * * *",
       command = ["/bin/sh", "-c", "echo Starting cron job... && sleep 5 && cd /usr/src/backend && echo Finish CD && python manage.py backup_db && echo Finish dj command"]
     },
   ]
+
+  use_recreate_deployment_strategy = true
 
   depend_on = []
 }
