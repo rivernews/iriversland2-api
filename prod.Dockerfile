@@ -66,7 +66,7 @@ COPY backend .
 # for pip install pillow - apk add jpeg-dev zlib-dev. see https://stackoverflow.com/questions/44043906/the-headers-or-library-files-could-not-be-found-for-jpeg-installing-pillow-on
 RUN apk update \
     && apk add --virtual build-deps gcc python3-dev musl-dev \
-    && apk add postgresql-dev \
+    && apk add postgresql-dev postgresql-client \
     && apk add jpeg-dev zlib-dev
 
 RUN pip install --upgrade pip && pip install -r requirements.txt

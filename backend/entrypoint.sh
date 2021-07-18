@@ -1,32 +1,33 @@
 #!/bin/sh
 
-# make sure you use /bin/sh instead of /bin/bash
-# see https://chaseonsoftware.com/notes_to_self/exec_user_process_docker/
+set -ex
 
-# if [ "$DATABASE" = "postgres" ]
-# then
-#     echo "Waiting for postgres..."
+export PGPASSWORD=$SQL_PASSWORD
+export DEFAULT_DATABASE=default_database
 
-#     while ! nc -z $SQL_HOST $SQL_PORT; do
-#       sleep 0.1
-#     done
+if psql -h $SQL_HOST -p $SQL_PORT -U $SQL_USER $DEFAULT_DATABASE -tc "SELECT 1 FROM pg_database WHERE datname = '${SQL_DATABASE}'" | grep -q 1; then
+    echo "Database ${SQL_DATABASE} already exist, will skip restore and just do a migrate"
+    python manage.py migrate
+else
+    echo "Database ${SQL_DATABASE} does not exist, will now restore data from S3"
 
-#     echo "PostgreSQL started"
-# fi
+    # pull latest json from s3
+    BUCKET=iriversland2-backup
+    s3_key=$(aws s3 ls s3://${BUCKET}/db-backup --recursive | sort | tail -n 1 | awk '{print $4}')
+    aws s3 cp "s3://${BUCKET}/${s3_key}" db_backup.json
 
-# to claer out the data, see https://stackoverflow.com/questions/7907456/emptying-the-database-through-djangos-manage-py
-# python manage.py flush --no-input
-# python manage.py migrate --fake
+    psql -h $SQL_HOST -p $SQL_PORT -U $SQL_USER $DEFAULT_DATABASE -c "CREATE DATABASE ${SQL_DATABASE}"
 
-# this will only run on a fresh provision and the following.
-# if you do `flush`, then this `migrate` will not work
-# python manage.py makemigrations
-# python manage.py makemigrations api
-python manage.py migrate
+    # migrate db using Django's schema, trim tables
+    python manage.py migrate && echo "delete from auth_permission; delete from django_content_type;" | python manage.py dbshell
+
+    # load into postgres VIA DJANGO manage command
+    python manage.py loaddata db_backup.json
+fi
 
 # We now uses the server as a pure REST API so no static file needed at all (except admin portals)
 # since we are hosting static files on s3, we no longer need to do this every time
-# IMPORTANT: only need to run this LOCALLY whenever angular code update 
+# IMPORTANT: only need to run this LOCALLY whenever angular code update
 # django will handle file upload to s3
 # python manage.py collectstatic --clear --noinput
 # python manage.py collectstatic --noinput
