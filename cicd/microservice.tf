@@ -7,7 +7,7 @@ variable "app_container_image_tag" {
 }
 
 data "aws_ssm_parameter" "kubernetes_cluster_name" {
-  name  = "terraform-managed.iriversland2-kubernetes.cluster-name"
+  name  = "terraform-managed.garage.cluster-name"
 }
 
 module "iriversland2_api" {
