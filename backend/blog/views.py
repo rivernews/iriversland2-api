@@ -30,30 +30,32 @@ class EmailReportMixin(object):
     request = None
 
     def send_feedback_notice_email(self, request, include_angular_report=False, contact_form_html=None):
+        self.HTML_MESSAGE = ''
         self.request = request
-        
+
         # contact me form submit
         if contact_form_html:
             self.HTML_MESSAGE += contact_form_html
-        self.HTML_MESSAGE += """
-            <h1 align="center">Visitor Report</h1>
-            """
+            self.HTML_MESSAGE += """
+                <h1 align="center">Visitor Report</h1>
+                """
+
         # collect all reporter params
         self.visitor_info_dict.update({ 'Django': self.prepare_django_report() })
         if include_angular_report:
             self.visitor_info_dict.update({ 'Angular': self.prepare_angular_report() })
-        
+
         # quick look up geo / visiting path from angular SPA routing
-        # 
-        # 
-        report_flags = []  
-        # lookup geo from dj      
+        #
+        #
+        report_flags = []
+        # lookup geo from dj
         try:
             ip_geo_info = self.visitor_info_dict['Django']['IP_address_x_forwarded_for_0']
             report_flags.append(ip_geo_info['city'] + ':Dj')
         except:
-            print('\n\n\nfailed to get city from ip\n\n\n', self.visitor_info_dict['Django']) 
-        
+            print('\n\n\nfailed to get city from ip\n\n\n', self.visitor_info_dict['Django'])
+
         if include_angular_report:
             # lookup geo from ng
             try:
@@ -66,45 +68,70 @@ class EmailReportMixin(object):
             except:
                 report_flags.append('{}:Ng'.format(self.ng_visiting_path))
 
-        
+
         # push in all the report params
         #
         #
         for reporter, report in self.visitor_info_dict.items():
-            self.HTML_MESSAGE += """
-            <h2>{} Reporter Data</h2>
-            """.format(reporter)
-            self.generate_report_html(report)
+            if contact_form_html:
+                self.HTML_MESSAGE += """
+                <h2>{} Reporter Data</h2>
+                """.format(reporter)
+            self.generate_report_html(report, use_markdown= not contact_form_html)
 
 
-        # ready to send email
-        # 
-        # 
-        FROM = settings.SERVER_EMAIL
-        TO = ['shaungc@umich.edu']
-
+        # ready to send notification (email or slack)
+        #
+        #
         SUBJECT = ''
         if len(report_flags) != 0:
             SUBJECT = ' | '.join(report_flags) + '......'
-        
+
         if contact_form_html:
-            SUBJECT = SUBJECT + "New Message from Iriversland2"                                
+            SUBJECT = SUBJECT + "New Message from Iriversland2"
         else:
-            SUBJECT = SUBJECT + "Visitor Report from Iriversland2"
+            SUBJECT = SUBJECT + "👋 Visitor Report from Iriversland2"
+
         MESSAGE = self.HTML_MESSAGE
-        send_mail(SUBJECT, MESSAGE, FROM, TO, html_message=self.HTML_MESSAGE)
-    
-    def generate_report_html(self, info_dict):
+        if contact_form_html:
+            FROM = settings.SERVER_EMAIL
+            TO = ['shaungc@umich.edu']
+            send_mail(SUBJECT, MESSAGE, FROM, TO, html_message=self.HTML_MESSAGE)
+        else:
+            requests.post(url=os.environ['SLACK_SEND_URL'], json={
+                # see structure at https://api.slack.com/block-kit/building
+                'channel': 'iriversland-notif',
+                'username': 'Iriversland Notification',
+                'blocks': [{
+                    'type': 'section',
+                    'text': {
+                        'type': 'mrkdwn',
+                        'text': f'*{SUBJECT}*'
+                    }
+                },{
+                    'type': 'section',
+                    'text': {
+                        'type': 'mrkdwn',
+                        'text': MESSAGE
+                    }
+                }]
+            })
+
+
+    def generate_report_html(self, info_dict, use_markdown=False):
         for key, value in info_dict.items():
             try:
                 normalized_str_value = json.dumps(value)
             except:
                 normalized_str_value = repr(value)
 
-            self.HTML_MESSAGE += """
-            <p><strong>{}</strong>: {}</p>
-            """.format(key, normalized_str_value )
-    
+            if use_markdown:
+                self.HTML_MESSAGE += f'*{key}:* `{normalized_str_value}` '
+            else:
+                self.HTML_MESSAGE += """
+                <p><strong>{}</strong>: {}</p>
+                """.format(key, normalized_str_value )
+
     def prepare_angular_report(self):
         ng_visitor_info_dict = {}
 
@@ -119,24 +146,24 @@ class EmailReportMixin(object):
                         doc_obj = CaseStudy.objects.get(id=visited_doc_id)
                     elif visited_doc_route == 'blog':
                         doc_obj = get_object_or_404(Post, pk=visited_doc_id)
-                    
+
                     ng_visitor_info_dict.update({ 'visited_doc_title': doc_obj.title })
                 except Exception as e:
                     print('Error while getting doc object for id {}'.format(visited_doc_id), repr(e))
-                    ng_visitor_info_dict.update({ "angular cannot get case study title. id is {}".format(visited_doc_id): '' })                    
+                    ng_visitor_info_dict.update({ "angular cannot get case study title. id is {}".format(visited_doc_id): '' })
 
         for key, value in dict(self.request.GET._iterlists()).items():
             ng_visitor_info_dict.update({ key: value })
-        
+
         return ng_visitor_info_dict
-        
-    
+
+
     def prepare_django_report(self):
         dj_visitor_info_dict = {}
         # Visitor detail info report
         dj_visitor_info_dict.update(self.getVisitorNotificationData())
         return dj_visitor_info_dict
-    
+
     def getBasicInfo(self, visitor_info):
         try:
             visitor_info['name'] = str(self.request.user)
@@ -153,7 +180,7 @@ class EmailReportMixin(object):
         try:
             visitor_info['IP_address_django_get_host'] = self.request.get_host()
             visitor_info['IP_address_django_remote_address'] = self.request.META.get('REMOTE_ADDR', '(empty)')
-            
+
             x_forwarded_for = self.request.META.get('HTTP_X_FORWARDED_FOR')
             if x_forwarded_for:
                 ip_list = x_forwarded_for.split(',')
@@ -162,7 +189,7 @@ class EmailReportMixin(object):
                 for ip in ip_list:
                     if ip == '':
                         continue
-                    
+
                     # ip stack api free plan does not allow https so just use http
                     stack_api = requests.get('http://api.ipstack.com/{}'.format(ip), params={
                         'access_key': os.environ['IPSTACK_API_TOKEN'],
@@ -179,7 +206,7 @@ class EmailReportMixin(object):
 
             else:
                 visitor_info['IP_address_x_forwarded_for'] = '(empty)'
-            
+
             visitor_info["user_agent"] = self.request.META.get('HTTP_USER_AGENT', '(empty)')
         except Exception as e:
             visitor_info['error_getting_more_info'] = 'error message: {}'.format(e)
