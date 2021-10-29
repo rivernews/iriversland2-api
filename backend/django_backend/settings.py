@@ -241,7 +241,7 @@ CORS_ORIGIN_WHITELIST = tuple(filter(bool, [ # filter: https://stackoverflow.com
 
 # This sets the header to '*'. if frontend are sending credentials, you cannot use this.
 # and needs to use CORS_ORIGIN_WHITELIST instead
-# CORS_ORIGIN_ALLOW_ALL = True 
+# CORS_ORIGIN_ALLOW_ALL = True
 
 # Adds header as 'Access-Control-Allow-Credentials': 'true'
 # Must turn it on when frontend is sending credentials (withCredentials: true in frontend's request header)
@@ -269,7 +269,7 @@ STATIC_URL = '/static/'
 #
 
 # s3 meta config
-AWS_S3_REGION_NAME = os.environ.get('AWS_REGION', 'us-east-2') 
+AWS_S3_REGION_NAME = os.environ.get('AWS_REGION', 'us-east-2')
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
 }
@@ -299,7 +299,7 @@ AWS_STORAGE_BUCKET_NAME = MEDIA_FILES_BUCKET_NAME
 
 
 # serving static files via s3
-# https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html#cloudfront  
+# https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html#cloudfront
 AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % STATIC_FILES_BUCKET_NAME
 
 
@@ -347,3 +347,5 @@ EMAIL_USE_TLS = True
 EMAIL_SUBJECT_PREFIX = '[Iriversland2 API Server Notifier] '
 
 ADMINS = [('Web Administrator', EMAIL_HOST_USER)]
+
+SEND_MESSAGE_URL = os.environ.get('SEND_MESSAGE_URL', '')

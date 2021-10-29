@@ -50,6 +50,7 @@ module "iriversland2_api" {
     "/service/gmail/EMAIL_HOST_USER",
     "/service/gmail/EMAIL_HOST_PASSWORD",
     "/service/gmail/EMAIL_PORT",
+    "/service/slack/SEND_MESSAGE_URL"
   ]
   kubernetes_cron_jobs = [
     {

@@ -1,5 +1,4 @@
 from django.views.generic import View
-from django.http import HttpResponse
 
 from django.core.mail import send_mail
 from django.conf import settings
@@ -98,7 +97,7 @@ class EmailReportMixin(object):
             TO = ['shaungc@umich.edu']
             send_mail(SUBJECT, MESSAGE, FROM, TO, html_message=self.HTML_MESSAGE)
         else:
-            requests.post(url=os.environ['SLACK_SEND_URL'], json={
+            requests.post(url=settings.SEND_MESSAGE_URL, json={
                 # see structure at https://api.slack.com/block-kit/building
                 'channel': 'iriversland-notif',
                 'username': 'Iriversland Notification',
