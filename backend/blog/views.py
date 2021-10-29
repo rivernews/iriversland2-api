@@ -89,7 +89,7 @@ class EmailReportMixin(object):
         if contact_form_html:
             SUBJECT = SUBJECT + "New Message from Iriversland2"
         else:
-            SUBJECT = SUBJECT + "👋 Visitor Report from Iriversland2"
+            SUBJECT = SUBJECT + "Visitor Report from Iriversland2"
 
         MESSAGE = self.HTML_MESSAGE
         if contact_form_html:
@@ -105,7 +105,7 @@ class EmailReportMixin(object):
                     'type': 'section',
                     'text': {
                         'type': 'mrkdwn',
-                        'text': f'*{SUBJECT}*'
+                        'text': f'👋 *{SUBJECT}*'
                     }
                 },{
                     'type': 'section',
