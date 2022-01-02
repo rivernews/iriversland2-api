@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 
-import datetime
+from datetime import timedelta
 
 try:
     # deployed local
@@ -90,6 +90,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'rest_framework_simplejwt',
     'corsheaders',
     'storages',
     # 'ckeditor',
@@ -201,15 +202,15 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAdminUser',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
 }
 
-JWT_AUTH = {
-    'JWT_ALLOW_REFRESH': True,
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=60), # 1 hour
-    # JWT_REFRESH_EXPIRATION_DELTA = datetime.timedelta(days=7), # default is 7 days
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=14),
+    'AUTH_HEADER_TYPES': ('JWT',)
 }
 
 
@@ -228,6 +229,7 @@ USE_TZ = True
 
 
 AUTH_USER_MODEL = 'account.CustomUser'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # Static files (CSS, JavaScript, Images)
@@ -235,7 +237,7 @@ AUTH_USER_MODEL = 'account.CustomUser'
 
 # Django CORS header settings for frontend
 CORS_ORIGIN_WHITELIST = tuple(filter(bool, [ # filter: https://stackoverflow.com/questions/3845423/remove-empty-strings-from-a-list-of-strings
-        'localhost:4200', # for frontend Angular developement server
+        'http://localhost:4200', # for frontend Angular developement server
     ] + os.environ.get('CORS_DOMAIN_WHITELIST', '').split(',') # frontend hosted on github page
 ))
 
