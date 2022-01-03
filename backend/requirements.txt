@@ -1,14 +1,15 @@
 # for django and restful
 #
-django<2
-gunicorn == 19.9.0
-djangorestframework==3.9.1
-django-cors-headers==2.4.0
-djangorestframework-jwt==1.11.0
+django==4.0
+gunicorn==20.1.0
+djangorestframework==3.13.1
+django-cors-headers==3.10.1
+djangorestframework-simplejwt==5.0.0
 
-django-cacheops<=4.3
+django-cacheops==6.0
+django-storages==1.12.3
 
-psycopg2>=2.8,<2.9 # https://stackoverflow.com/a/55418419/9814131
+psycopg2==2.9.3 # https://stackoverflow.com/a/55418419/9814131
 #
 # for local dev, devcontainer in docker is recommended, so OS version does not matter
 #
@@ -21,10 +22,10 @@ psycopg2>=2.8,<2.9 # https://stackoverflow.com/a/55418419/9814131
 
 # for AWS Elastic Beanstalk
 #
-mako==1.0.7
+# mako==1.0.7
 # awsebcli==3.14.6
 
-requests==2.20.0
+requests==2.26.0
 
 # for local dev, devcontainer in docker is recommended, so OS version does not matter
 #
@@ -34,7 +35,6 @@ requests==2.20.0
 # pillow==5.3.0
 
 # django-ckeditor==5.6.1
-boto3==1.9.27
-django-storages==1.7.1
+boto3==1.20.26
+awscli==1.22.26
 
-awscli

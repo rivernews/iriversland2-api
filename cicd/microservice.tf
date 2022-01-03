@@ -23,7 +23,7 @@ module "iriversland2_api" {
   app_label               = "iriversland2-api"
   app_exposed_port        = 8000
   app_deployed_domain     = "api.shaungc.com"
-  cors_domain_whitelist   = ["shaungc.com"]
+  cors_domain_whitelist   = ["https://shaungc.com"]
   app_container_image     = "shaungc/iriversland2-django"
   app_container_image_tag = var.app_container_image_tag
   app_secret_name_list = [
