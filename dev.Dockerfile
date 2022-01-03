@@ -25,7 +25,7 @@
 ##
 ##
 
-FROM python:3.7-slim
+FROM python:3.10-slim
 
 # Set environment varibles
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -34,7 +34,7 @@ ENV PYTHONUNBUFFERED 1
 ENV PROJECT_DIR /usr/src
 
 # Set work directory
-# sets the working directory for docker commands e.g. RUN, CMD, ENTRYPOINT, COPY and ADD. 
+# sets the working directory for docker commands e.g. RUN, CMD, ENTRYPOINT, COPY and ADD.
 # also WORKDIR will auto-create directory if not exist.
 WORKDIR ${PROJECT_DIR}/backend
 
