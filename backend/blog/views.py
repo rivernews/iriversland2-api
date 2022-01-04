@@ -151,7 +151,7 @@ class EmailReportMixin(object):
                     print('Error while getting doc object for id {}'.format(visited_doc_id), repr(e))
                     ng_visitor_info_dict.update({ "angular cannot get case study title. id is {}".format(visited_doc_id): '' })
 
-        for key, value in dict(self.request.GET._iterlists()).items():
+        for key, value in dict(self.request.GET.lists()).items():
             ng_visitor_info_dict.update({ key: value })
 
         return ng_visitor_info_dict
